@@ -62,6 +62,9 @@ runcmd(struct cmd *cmd)
       exit(0);
     fprintf(stderr, "exec not implemented\n");
     // Your code here ...
+    char *argv[1];
+    argv[0] = ecmd->argv;
+    exec(ecmd->argv,argv);
     break;
 
   case '>':
@@ -69,6 +72,7 @@ runcmd(struct cmd *cmd)
     rcmd = (struct redircmd*)cmd;
     fprintf(stderr, "redir not implemented\n");
     // Your code here ...
+
     runcmd(rcmd->cmd);
     break;
 
