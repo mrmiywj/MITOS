@@ -104,6 +104,7 @@ serial_init(void)
 
 
 
+
 /***** Parallel port output code *****/
 // For information on PC parallel port programming, see the class References
 // page.
