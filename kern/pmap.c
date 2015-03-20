@@ -17,7 +17,7 @@ static size_t npages_basemem;	// Amount of base memory (in pages)
 pde_t *kern_pgdir;		// Kernel's initial page directory
 struct PageInfo *pages;		// Physical page state array
 static struct PageInfo *page_free_list;	// Free list of physical pages
-
+static struct PageInfo *tail_free_list; //Free list of physical pages
 
 // --------------------------------------------------------------
 // Detect machine's physical memory setup.
@@ -194,7 +194,7 @@ mem_init(void)
 	//       overwrite memory.  Known as a "guard page".
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,KSTKSIZE,bootstack,PTE_W);-
+	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,KSTKSIZE,bootstack,PTE_W);
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -261,12 +261,21 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
+	physaddr_t next_boot_free;
 	size_t i;
-	for (i = 0; i < npages; i++) {
-		pages[i].pp_ref = 0;
-		pages[i].pp_link = page_free_list;
-		page_free_list = &pages[i];
+	page_free_list = &pages[0];
+	for (size_t i = 1; i < npages; i++) {
+		pages[i - 1].pp_ref = 0;
+		pages[i - 1].pp_link = &pages[i];
 	}
+	pages[npages - 1].pp_ref = 0;
+	pages[npages - 1].pp_link = NULL;
+	pages[0].pp_link = NULL;
+	pages[0].pp_ref = 1;
+	page_free_list = &pages[1];
+	tail_free_list = &pages[npages - 1];
+	next_boot_free = PADDR(boot_alloc(0));
+	//
 }
 
 //
