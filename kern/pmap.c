@@ -112,7 +112,7 @@ boot_alloc(uint32_t n)
 		panic("out of memory!");
 
 	assert((uintptr_t) result % PGSIZE == 0);
-	assert((uintptr_t) nextfree %　PGSIZE == 0);
+	assert((uintptr_t) nextfree %PGSIZE == 0);
 
 	return result;
 }
@@ -136,7 +136,7 @@ mem_init(void)
 	i386_detect_memory();
 
 	// Remove this line when you're ready to test this function.
-	panic("mem_init: This function is not finished\n");
+	//panic("mem_init: This function is not finished\n");
 
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
@@ -159,7 +159,7 @@ mem_init(void)
 	// array.  'npages' is the number of physical pages in memory.  Use memset
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
-	pages = (struct PageInof*)boot_alloc(npages * sizeof(struct PageInfo));
+	pages = (struct PageInfo*)boot_alloc(npages * sizeof(struct PageInfo));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -183,7 +183,7 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir,UPAGES,ROUNDUP(sizeof(struct PageInfo) * npages,PGSIZE),PADDR(pages),PTE_U);
+	boot_map_region((pde_t*) kern_pgdir,(uintptr_t) UPAGES,(size_t) ROUNDUP(sizeof(struct PageInfo) * npages,PGSIZE),PADDR(pages),PTE_U);
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
 	// stack.  The kernel stack grows down from virtual address KSTACKTOP.
@@ -195,7 +195,7 @@ mem_init(void)
 	//       overwrite memory.  Known as a "guard page".
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,KSTKSIZE,bootstack,PTE_W);
+	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,KSTKSIZE,(physaddr_t) bootstack,PTE_W);
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -265,7 +265,7 @@ page_init(void)
 	physaddr_t next_boot_free;
 	size_t i;
 	page_free_list = &pages[0];
-	for (size_t i = 1; i < npages; i++) {
+	for ( i = 1; i < npages; i++) {
 		pages[i - 1].pp_ref = 0;
 		pages[i - 1].pp_link = &pages[i];
 	}
@@ -277,7 +277,7 @@ page_init(void)
 	tail_free_list = &pages[npages - 1];
 	next_boot_free = PADDR(boot_alloc(0));
 	//set IO hole
-	for (size_t i = PGNUM(EXTPHYSMEM); i < PGNUM(next_boot_free);i++)
+	for ( i = PGNUM(EXTPHYSMEM); i < PGNUM(next_boot_free);i++)
 	{
 		pages[i].pp_ref = 1;
 	}
@@ -299,6 +299,7 @@ page_init(void)
 // Returns NULL if out of free memory.
 //
 // Hint: use page2kva and memset
+struct PageInfo*
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
@@ -369,6 +370,11 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
+	if (PTE_P & pgdir[PDX(va)]){
+		return (pte_t* ) page2pa((struct PageInfo*) pgdir[PDX(va)]);
+	}
+	else{
+	}
 	return NULL;
 }
 
