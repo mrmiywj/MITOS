@@ -11,6 +11,7 @@
 
 // These variables are set by i386_detect_memory()
 size_t npages;			// Amount of physical memory (in pages)
+size_t nAvailPages; // Amount of available pages.
 static size_t npages_basemem;	// Amount of base memory (in pages)
 
 // These variables are set in mem_init()
@@ -275,7 +276,15 @@ page_init(void)
 	page_free_list = &pages[1];
 	tail_free_list = &pages[npages - 1];
 	next_boot_free = PADDR(boot_alloc(0));
-	//
+	//set IO hole
+	for (size_t i = PGNUM(EXTPHYSMEM); i < PGNUM(next_boot_free);i++)
+	{
+		pages[i].pp_ref = 1;
+	}
+	pages[PGNUM(IOPHYSMEM) - 1].pp_link = &pages[PGNUM(next_boot_free)];
+	pages[PGNUM(next_boot_free) - 1].pp_link = NULL;
+	pages[0].pp_link = &pages[PGNUM(IOPHYSMEM)];
+	nAvailPages = nAvailPages  - 1 + (PGNUM(EXTPHYSMEM) - PGNUM(IOPHYSMEM));
 }
 
 //
@@ -290,11 +299,22 @@ page_init(void)
 // Returns NULL if out of free memory.
 //
 // Hint: use page2kva and memset
-struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
-	return 0;
+	if (page_free_list == NULL){
+		return NULL;
+	}
+	struct PageInfo* ret_page = NULL;
+	ret_page = page_free_list;
+	page_free_list = ret_page->pp_link;
+	ret_page->pp_link = NULL;
+	if (alloc_flags && ALLOC_ZERO){
+		//set memory to '\0'
+		memset((void*)page2kva(ret_page),'\0',PGSIZE);
+	}
+	ret_page -> pp_ref = 0;
+	return ret_page;
 }
 
 //
