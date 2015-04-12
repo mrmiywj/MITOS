@@ -128,6 +128,8 @@ env_init(void)
 		envs[i].env_type = ENV_TYPE_USER;
 		env_free_list = &envs[i];
 	}
+
+	cprintf("env_free_list: 0x%08x, &envs[i]: 0x%08x\n",env_free_list,&envs[i]);
 	// Per-CPU part of the initialization
 	env_init_percpu();
 }
@@ -190,7 +192,7 @@ env_setup_vm(struct Env *e)
 	//    - The functions in kern/pmap.h are handy.
 
 	// LAB 3: Your code here.
-	p->pp_ref++;
+	(p->pp_ref)++;
 	pde_t* vm_dir = page2kva(p);
 	memcpy(vm_dir,kern_pgdir,PGSIZE);
 	e->env_pgdir = vm_dir;
@@ -281,7 +283,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   'va' and 'len' values that are not page-aligned.
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
-	va = ROUNDUP(va,PGSIZE);
+	va = ROUNDDOWN(va,PGSIZE);
 	len = ROUNDUP(len,PGSIZE);
 	int i = 0;
 	struct PageInfo* pp;
@@ -368,7 +370,7 @@ load_icode(struct Env *e, uint8_t *binary)
 				panic("The filesz is larger than memsz!");
 			}
 			region_alloc(e,(void*)ph->p_va,ph->p_memsz);
-			memmove((void *)ph->p_pa,binary + ph->p_offset,ph->p_filesz);
+			memmove((void *)ph->p_va,binary + ph->p_offset,ph->p_filesz);
 			memset((void*)ph->p_va + ph->p_filesz,0,ph->p_memsz - ph->p_filesz);
 		}
 	}
@@ -520,7 +522,7 @@ env_run(struct Env *e)
 	curenv->env_status = ENV_RUNNING;
 	curenv->env_runs++;
 	lcr3(PADDR(curenv->env_pgdir));
-	panic("env_run not yet implemented");
+	//panic("env_run not yet implemented");
 
 	env_pop_tf(&(e->env_tf));
 }
