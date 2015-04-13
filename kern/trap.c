@@ -82,13 +82,13 @@ trap_init(void)
 	extern void th16();
 	SETGATE(idt[0], 0, GD_KT, th0, 0);
 	SETGATE(idt[1], 0, GD_KT, th1, 0);
-	SETGATE(idt[3], 0, GD_KT, th3, 0);
-	SETGATE(idt[4], 0, GD_KT, th4, 3);
+	SETGATE(idt[3], 0, GD_KT, th3, 3);
+	SETGATE(idt[4], 0, GD_KT, th4, 0);
 	SETGATE(idt[5], 0, GD_KT, th5, 0);
     SETGATE(idt[6], 0, GD_KT, th6, 0);
     SETGATE(idt[7], 0, GD_KT, th7, 0);
     SETGATE(idt[8], 0, GD_KT, th8, 0);
-    SETGATE(idt[9], 0, GD_KT, th9, 0);
+//    SETGATE(idt[9], 0, GD_KT, th9, 0);
     SETGATE(idt[10], 0, GD_KT, th10, 0);
     SETGATE(idt[11], 0, GD_KT, th11, 0);
     SETGATE(idt[12], 0, GD_KT, th12, 0);
@@ -173,7 +173,14 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
-
+	if (tf->tf_trapno == T_PGFLT){
+		page_fault_handler(tf);
+		return;
+	}
+	if (tf->tf_trapno == T_BRKPT){
+		monitor(tf);
+		return;
+	}
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
