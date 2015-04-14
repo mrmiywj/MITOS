@@ -295,7 +295,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 		if (!pp){
 			panic("Fail to allocate page!");
 		}
-		ret = page_insert(e->env_pgdir,pp,index,PTE_U|PTE_W);
+		ret = page_insert(e->env_pgdir,pp,index,PTE_U|PTE_W | PTE_P);
 		if (ret){
 			panic("Fail to insert page!");
 		}

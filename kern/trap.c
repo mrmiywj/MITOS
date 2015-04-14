@@ -73,7 +73,6 @@ trap_init(void)
 	extern void th6();
 	extern void th7();
 	extern void th8();
-	extern void th9();
 	extern void th10();
 	extern void th11();
 	extern void th12();
@@ -89,7 +88,6 @@ trap_init(void)
     SETGATE(idt[6], 0, GD_KT, th6, 0);
     SETGATE(idt[7], 0, GD_KT, th7, 0);
     SETGATE(idt[8], 0, GD_KT, th8, 0);
-//    SETGATE(idt[9], 0, GD_KT, th9, 0);
     SETGATE(idt[10], 0, GD_KT, th10, 0);
     SETGATE(idt[11], 0, GD_KT, th11, 0);
     SETGATE(idt[12], 0, GD_KT, th12, 0);

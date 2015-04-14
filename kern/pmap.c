@@ -190,6 +190,11 @@ mem_init(void)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
 	boot_map_region((pde_t*) kern_pgdir,(uintptr_t) UPAGES,(size_t) ROUNDUP(sizeof(struct PageInfo) * npages,PGSIZE),PADDR(pages),PTE_U | PTE_P);
+    boot_map_region(kern_pgdir,
+                    (uintptr_t)pages,
+                    ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE),
+                    PADDR(pages),
+                    (PTE_W | PTE_P));
 	//////////////////////////////////////////////////////////////////////
 	// Map the 'envs' array read-only by the user at linear address UENVS
 	// (ie. perm = PTE_U | PTE_P).
@@ -198,6 +203,11 @@ mem_init(void)
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
 	boot_map_region((pde_t*) kern_pgdir,(uintptr_t) UENVS,(size_t) ROUNDUP(sizeof (struct Env) * NENV,PGSIZE),PADDR(envs),PTE_U|PTE_P);
+	boot_map_region(kern_pgdir,
+	                (uintptr_t)envs,
+	                ROUNDUP((sizeof(struct Env) * NENV) , PGSIZE),
+	                PADDR(envs),
+	                (PTE_W | PTE_P));
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
 	// stack.  The kernel stack grows down from virtual address KSTACKTOP.
@@ -209,7 +219,7 @@ mem_init(void)
 	//       overwrite memory.  Known as a "guard page".
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,ROUNDUP(KSTKSIZE,PGSIZE),(physaddr_t)PADDR(bootstack),PTE_W);
+	boot_map_region(kern_pgdir,KSTACKTOP - KSTKSIZE,ROUNDUP(KSTKSIZE,PGSIZE),(physaddr_t)PADDR(bootstack),PTE_W | PTE_P);
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -218,7 +228,7 @@ mem_init(void)
 	// we just set up the mapping anyway.
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
-	boot_map_region(kern_pgdir,(uintptr_t)KERNBASE,~KERNBASE + 1,(physaddr_t)(0),PTE_W);
+	boot_map_region(kern_pgdir,(uintptr_t)KERNBASE,~KERNBASE + 1,(physaddr_t)(0),PTE_W | PTE_P);
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
 
